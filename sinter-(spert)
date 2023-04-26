@@ -1,0 +1,94 @@
+Stper tow {for2.0
+NTFS-pctl ONT22wu42 ntover
+from cpgzero import *
+import random
+
+xiaomeng = Actor("小萌")
+star_list = []
+
+music.play("3082041059")
+music.set_volume(0.5)
+
+score = 0
+time = 30
+game_end = False
+
+
+class Star:
+    def __init__(self, x, y, speed):
+        self.star = Actor("酷跑-夹心星星")
+        self.star.x = x
+        self.star.y = y
+        self.speed = speed
+        self.is_out = False
+
+    def move(self):
+        star = self.star
+        star.y -= self.speed
+        if star.y < HEIGHT / 2 * -1:
+            self.is_out = True
+            self.star.remove()
+
+
+def make_star():
+    x = random.randint(WIDTH / -2, WIDTH / 2)
+    y = HEIGHT / 2
+    speed = random.randint(4, 10)
+    star = Star(x, y, speed)
+    star_list.append(star)
+
+
+clock.schedule_interval(make_star, 1)
+
+
+def countdown():
+    global time
+    global game_end
+    if time <= 0:
+        game_end = True
+        clock.unschedule(countdown)
+        clock.unschedule(make_star)
+        music.stop()
+    else:
+        time -= 1
+
+clock.schedule_interval(countdown, 1)
+
+def update():
+    global score
+    if not game_end:
+        for star in star_list:
+            star.move()
+            if star.star.collide_actor(xiaomeng):
+                score += 1
+                sound.play("FactoryOpen")
+                star.is_out = True
+                star.star.remove()
+            if star.is_out:
+                star_list.remove(star)
+
+        if keyboard[keys.LEFT] and xiaomeng.x > WIDTH / 2 * -1:
+            xiaomeng.x -= 15
+        elif keyboard.right and xiaomeng.x < WIDTH / 2:
+            xiaomeng.x += 15
+        pen.clear()
+        text = "得分：" + str(score) + "  时间：" + str(time)
+        pen.text(text, (-400, 400), "red", 80)
+    else:
+        pen.text("time over !!!", (-200,0), 'purple',  120)
+    
+def on_key_down(key):
+    if key == keys.LEFT:
+        xiaomeng.image = "造型2"
+    elif key == keys.RIGHT:
+        xiaomeng.image = "造型1"
+
+
+def on_mouse_down(pos):
+    x, y = pos
+    if x > 0:
+        xiaomeng.image = "造型1"
+        xiaomeng.x += 50
+    else:
+        xiaomeng.image = "造型2"
+        xiaomeng.x -= 50
